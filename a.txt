@@ -1,1 +1,8 @@
 add hotfix to a 
+
+https://www.zcfy.cc/article/react-internals-part-one-basic-rendering-matt-greer
+https://segmentfault.com/a/1190000015648248
+
+https://juejin.im/post/5a84682ef265da4e83266cc4
+
+https://bingohuang.gitbooks.io/progit2/content/02-git-basics/sections/summary.html
