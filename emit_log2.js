@@ -34,5 +34,5 @@ class RabbitMQ {
 }
 
 const rabbit = new RabbitMQ({});
-const msg = process.argv.slice(2).join(' ') || 'todo'
+const msg = process.argv.slice(2).join(' ') || JSON.stringify({ code: '000000', status: "success", list: [ {a: "aa" } ] })
 rabbit.sendQueueMsg(msg, (err) => { log("err: ", err); })
