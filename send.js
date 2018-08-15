@@ -4,8 +4,10 @@ var amqp = require('amqplib/callback_api');
 console.log('===',amqp)
 
 amqp.connect('amqp://127.0.0.1', function(err, conn) {
+  console.log('==err=', err)
 	console.log('=conn=', conn)
   conn.createChannel(function(err, ch) {
+    console.log('====er==', err)
     var q = 'hello';
     var msg = 'Hello World!';
 

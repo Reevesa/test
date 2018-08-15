@@ -1,42 +1,65 @@
 
-const amqp = require('amqplib/callback_api');
-const url = 'amqp://39.108.184.93'
+const amqp = require('amqplib')
+const url = 'amqp://39.108.184.93:5672'
+function timeout(ms) {
+  return new Promise((resolve, reject) => {
+    setTimeout(resolve, ms, 'done');
+  });
+}
+class RabbitMq {
+  constructor(options) {
+    this.ex = 'wkToLCRM-test2'
+    this.exType = 'direct'
+    this.durable = true
+    this.routeKey = 'test-route2'
+    this.autoDelete = true
+    this.q = 'hello'
+  }
 
-const args = ['test-route2']
+  async send() {
+    const conn = await amqp.connect(url)
 
-const q = 'hello'
+    try {
+      const ch = await conn.createChannel()
+      // 确认消息发送 ok
+      const res = await ch.assertExchange(this.ex, this.exType, { durable: this.durable })
+      // 此处 q 置空，用的是rabbitmq自动生成的队列名, exclusive 是生成排他队列, 连接断开后就会自动删除
+      const q = await ch.assertQueue(this.routeKey, { exclusive: false })
 
-amqp.connect(url, (err, conn) => {
-  conn.createChannel(async (err, ch) => {
-    const ex = 'wkToLCRM-test2'
+      console.log('==q=', q)
+      // 队列绑定 exchange
+      // ch.bindQueue(q.queue, this.ex, this.routeKey)
+      ch.bindQueue(this.routeKey, this.ex, this.routeKey)
+      ch.prefetch(1);
+      // ch.consume(q.queue, msg => {
+      ch.consume(this.routeKey, async msg => {
+        console.log('收到消息: ', msg.content.toString())
 
-    // ch.assertExchange(ex, 'direct', { durable: true})
-    const res = await ch.assertQueue(q, { durable: true })
-    console.log('==res=', res)
-    // const msg = 'hello mq'
-    // ch.sendToQueue(q, Buffer.from(msg))
-
-    const res2 = ch.consume(q, async (msg)=>{
-      // console.log('receive: msg ', msg)
-      console.log('receive: msg ', msg.content.toString())
-
-      const res3 = await ch.ack(msg)
-      console.log('==res3=', res3)
-    }, { noAck: false })
-
-    /* ch.assertQueue('', { exclusive: true }, (err, q) => {
-      console.log(' [*] Waiting for logs. To exit press CTRL+C');
-      console.log('===q=', q)
-
-      args.forEach(v => {
-        ch.bindQueue(q.queue, ex, v)
-      })
-      console.log('queue', q.queue)
-
-      ch.consume(q.queue, (msg) => { 
+        await timeout(5000)
+         // 发送确认消息
         ch.ack(msg)
-        console.log('[x] "%s": "%s"', msg.fields.routingKey, msg.content.toString())
-      }, {noAck: false})
-    }) */
-  })
-})
+        // this.ackMsg(msg, ch, 'success')
+        // this.ackMsg(msg, ch, )
+      }, { noAck: false })
+
+      // ch.close()
+    } catch (e) {
+      console.log('==e==', e)
+      ch.close()
+    }
+  }
+
+  async ackMsg(msg, ch, result) {
+    // queue content options cb
+    // ch.sendToQueue(msg.properties.replyTo,
+    //               Buffer.from(result),
+    //               { correlationId: msg.properties.correlationId }, (arg) => {
+    //                 console.log('=ack==', arg)
+    //               })
+    ch.ack(msg) // 确认后, 才会删除 队列中的消息, 防止重复消费
+  }
+}
+
+const rabbit = new RabbitMq({})
+
+rabbit.send()
