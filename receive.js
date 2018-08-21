@@ -1,6 +1,8 @@
 var amqp = require('amqplib/callback_api');
+const url = 'amqp://wk:123456@172.29.2.89:5672'+encodeURIComponent('/wk')
 
-amqp.connect('amqp://localhost', function(err, conn) {
+amqp.connect(url, function(err, conn) {
+  console.log('==conn==', conn)
   conn.createChannel(function(err, ch) {
     var q = 'hello';
 

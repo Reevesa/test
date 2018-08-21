@@ -1,6 +1,27 @@
 const amqp = require('amqplib')
-const url = 'amqp://39.108.184.93:5672'
+const url = 'amqp://wk:123456@172.29.2.89:5672/%2Fwk'
 
+const INNER = {
+  protocol: 'amqp',
+  hostname: '172.29.2.89',
+  port: 5672,
+  username: '',
+  password: '',
+  frameMax: 0,
+  heartbeat: 0,
+  vhost: '/wk'
+}
+
+const connectObj = {
+  protocol: 'amqp',
+  hostname: '39.108.184.93',
+  port: 5672,
+  username: 'yuanzhe',
+  password: 'yuanzhe',
+  frameMax: 0,
+  heartbeat: 0,
+  vhost: '/wk',
+}
 
 function timeout(ms) {
   return new Promise((resolve, reject) => {
@@ -10,18 +31,19 @@ function timeout(ms) {
 let count = 0
 class RabbitMq {
   constructor(options) {
-    this.ex = 'wkToLCRM-test2'
+    this.ex = 'wk.lcrm.applyInfo'
     this.exType = 'direct'
     this.durable = true
-    this.routeKey = 'test-route2'
-    this.autoDelete = true
-    this.q = 'hello'
+    this.routeKey = 'wk.lcrm.applyInfo'
+    this.autoDelete = false
+    this.q = 'wk.lcrm.applyInfo.queue'
   }
 
   async send() {
-    const conn = await amqp.connect(url)
+    // const conn = await amqp.connect(url)
+    const conn = await amqp.connect(INNER)
     const msg = JSON.stringify({ a: "aa"+ count})
-    console.log('==conn==', conn)
+    console.log('==conn==', conn.constructor)
     // 捕获错误
     conn.on('error', (err) => {
       console.log('conn error: ', err)
@@ -34,8 +56,10 @@ class RabbitMq {
       // const ch = await conn.createChannel()
       // 确认消息发送 ok 猜测是开启 confirm 机制，对应的监听函数是什么呢?
       const ch = await conn.createConfirmChannel()
-      const res = await ch.assertExchange(this.ex, this.exType, { durable: this.durable })
-
+      const res = await ch.assertExchange(this.ex, this.exType, { exclusive: false, durable: true, autoDelete: false, passive: false })
+      const res3 = await ch.assertQueue(this.q, {exclusive: false, durable: true, autoDelete: false, passive: false });
+      console.log('==res=3', res3)
+      console.log('==res2=', res)
       var flag = 0
       while(flag < 4) {
         // 实现消息持久化, 要exchange,queue,msg 三者同时持久化
@@ -50,9 +74,6 @@ class RabbitMq {
         }, (arg) => {
           console.log('==发送消息==', arg)
         })
-        // 确认消息已经入队, 返回错误 是啥样? 错误怎么处理?直接close?
-        const res2 = await ch.waitForConfirms()
-        console.log('==res2==', res2)
 
         console.log(" [x] Sent '%s'", msg);
 
@@ -60,6 +81,9 @@ class RabbitMq {
         flag++
         count++
       }
+      // 确认消息已经入队, 返回错误 是啥样? 错误怎么处理?直接close?
+      const res2 = await ch.waitForConfirms()
+      console.log('==res2==', res2)
       ch.close()
     } catch (e) {
       console.log('==e==', e)
@@ -72,3 +96,17 @@ const rabbit = new RabbitMq({})
 
 rabbit.send()
 
+
+/**
+ * class RabbitMq {
+  constructor({ ex, exType, durable, routeKey, autoDelete, q }) {
+    this.ex = ex || 'wk.lcrm.applyInfo'
+    this.exType = exType || 'direct'
+    this.durable = durable || true
+    this.routeKey = routeKey || 'wk.lcrm.applyInfo'
+    this.autoDelete = autoDelete || false
+    this.q = q || 'wk.lcrm.applyInfo.queue'
+  }
+  
+}
+ */
