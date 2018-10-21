@@ -12,16 +12,6 @@ const connectObj = {
   vhost: '/wk',
 }
 
-const INNER = {
-  protocol: 'amqp',
-  hostname: '172.29.2.89',
-  port: 5672,
-  username: '',
-  password: '',
-  frameMax: 0,
-  heartbeat: 0,
-  vhost: '/wk'
-}
 
 function timeout(ms) {
   return new Promise((resolve, reject) => {

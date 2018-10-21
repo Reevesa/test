@@ -1,16 +1,5 @@
 const amqp = require('amqplib')
-const url = 'amqp://wk:123456@172.29.2.89:5672/%2Fwk'
-
-const INNER = {
-  protocol: 'amqp',
-  hostname: '172.29.2.89',
-  port: 5672,
-  username: '',
-  password: '',
-  frameMax: 0,
-  heartbeat: 0,
-  vhost: '/wk'
-}
+const url = 'amqp://39.108.184.93'
 
 const connectObj = {
   protocol: 'amqp',

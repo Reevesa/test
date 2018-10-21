@@ -1,5 +1,5 @@
 var amqp = require('amqplib/callback_api');
-const url = 'amqp://wk:123456@172.29.2.89:5672'+encodeURIComponent('/wk')
+const url = 'amqp://39.108.184.93'
 
 amqp.connect(url, function(err, conn) {
   console.log('==conn==', conn)
